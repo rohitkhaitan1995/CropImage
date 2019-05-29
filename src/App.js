@@ -21,6 +21,7 @@ import InboxIcon from '@material-ui/icons/MoveToInbox';
 import MailIcon from '@material-ui/icons/Mail';
 
 import Bookmark from './bookmark';
+import './bookmark.css';
 
 const drawerWidth = 240;
 
@@ -119,7 +120,7 @@ class App extends Component {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" color="inherit" noWrap>
-              Add Bookmark
+              Crop Images List
             </Typography>
           </Toolbar>
         </AppBar>

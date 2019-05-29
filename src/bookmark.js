@@ -1,228 +1,323 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import ButtonBase from '@material-ui/core/ButtonBase';
-import InputBase from '@material-ui/core/InputBase';
-import Button from '@material-ui/core/Button';
-import axios from 'axios'
+
+import Cropper from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
+import { storage, database } from './firebase';
+
+import GridList from '@material-ui/core/GridList';
+import GridListTile from '@material-ui/core/GridListTile';
+import GridListTileBar from '@material-ui/core/GridListTileBar';
+// import ListSubheader from '@material-ui/core/ListSubheader';
+import IconButton from '@material-ui/core/IconButton';
+import InfoIcon from '@material-ui/icons/Info';
+
 
 const styles = theme => ({
     root: {
-        flexGrow: 1,
+    //   display: 'flex',
+    //   flexWrap: 'wrap',
+    //   justifyContent: 'space-around',
+    //   overflow: 'hidden',
+    //   backgroundColor: theme.palette.background.paper,
     },
-    button: {
-        margin: theme.spacing.unit,
+    gridList: {
+     
     },
-    bootstrapRoot: {
-        'label + &': {
-            marginTop: theme.spacing.unit * 3,
-        },
+    icon: {
+      color: 'rgba(255, 255, 255, 0.54)',
     },
-    bootstrapInput: {
-        borderRadius: 4,
-        position: 'relative',
-        backgroundColor: theme.palette.common.white,
-        border: '1px solid #ced4da',
-        fontSize: 16,
-        width: 'auto',
-        padding: '10px 12px',
-        transition: theme.transitions.create(['border-color', 'box-shadow']),
-        // Use the system font instead of the default Roboto font.
-        fontFamily: [
-            '-apple-system',
-            'BlinkMacSystemFont',
-            '"Segoe UI"',
-            'Roboto',
-            '"Helvetica Neue"',
-            'Arial',
-            'sans-serif',
-            '"Apple Color Emoji"',
-            '"Segoe UI Emoji"',
-            '"Segoe UI Symbol"',
-        ].join(','),
-        '&:focus': {
-            borderRadius: 4,
-            borderColor: '#80bdff',
-            boxShadow: '0 0 0 0.2rem rgba(0,123,255,.25)',
-        },
-    },
-    paper: {
-        padding: theme.spacing.unit,
-        margin: 'auto',
-        maxWidth: 1200,
-    },
-    image: {
-        width: 32,
-        height: 32,
-    },
-    tagimage: {
-        width: 64,
-        height: 64,
-    },
-    controlimage: {
-        width: 32,
-        height: 32,
-    },
-    tagimg: {
-        margin: 'auto',
-        display: 'block',
-        maxWidth: '100%',
-        maxHeight: '100%',
-    },
-    img: {
-        margin: 'auto',
-        display: 'block',
-        maxWidth: '100%',
-        maxHeight: '100%',
-    },
+    
 });
 
 class Bookmark extends Component {
     state = {
-        list: [
-            {
-                bookmark_name: "Rohit",
-                description: "Search the world's information, including webpages, images, videos and more. Google has many special features to help you find exactly what you're looking for.",
-                image: "http://www.google.com/images/branding/googlelogo/1x/googlelogo_white_background_color_272x92dp.png",
-                title: "Google",
-                url: "http://www.google.com/",
-            },
-            {
-                bookmark_name: "Rohit",
-                description: "Enjoy the videos and music you love, upload original content, and share it all with friends, family, and the world on YouTube.",
-                image: "",
-                title: "YouTube",
-                url: "https://www.youtube.com/"
-            },
-            {
-                bookmark_name: "Rohit",
-                description: "Contains all examples of our Interactive & Dynamic Force-Directed Graphs with D3 blog post - ninjaconcept/d3-force-directed-graph",
-                image: "https://avatars3.githubusercontent.com/u/200890?s=400&v=4",
-                title: "ninjaconcept/d3-force-directed-graph",
-                url: "https://github.com/ninjaconcept/d3-force-directed-graph/blob/master/example/2-relations.html",
-            }, {
-                bookmark_name: "Rohit",
-                description: "Navigation drawers provide access to destinations in your app. Side sheets are surfaces containing supplementary content that are anchored to the left or right edge of the screen.",
-                image: "https://material-ui.com/static/brand.png",
-                title: "Drawer React component - Material-UI",
-                url: "https://material-ui.com/demos/drawers/"
-            }],
+        data: null,
+        list: [1, 2],
         url: '',
         bookmark_name: '',
         grid: 4,
+        image: '',
+        name: '',
+        image_list: []
     };
 
     componentDidMount() {
-        
+        var val = database.ref('image_url');
+        val.on('child_added', snap => {
+            this.setState({ image_list: [...this.state.image_list, snap.val()] });
+        });
     }
-    handleChange = event => {
-        this.setState({ bookmark_name: event.target.value });
-    };
-    handleChange1 = event => {
-        this.setState({ url: event.target.value });
-    }
-
-    fetchUrl = () => {
-        axios.post(
-            'https://api.linkpreview.net',
-            {
-                q: this.state.url,
-                key: '5c834ec7e06841cfa81af29c6f2d8cacb44921722e753'
-            }).then(res => {
-                this.setState({
-                    list: [...this.state.list,
-                    { bookmark_name: this.state.bookmark_name, description: res.data.description, image: res.data.image, title: res.data.title, url: res.data.url }]
+    handleUpload = () => {
+        const { cropResult1, cropResult2, cropResult3, cropResult4 } = this.state;
+        console.log(this.state.image_list);
+        [[cropResult1, this.cropper1.props.name], [cropResult2, this.cropper2.props.name], [cropResult3, this.cropper3.props.name], [cropResult4, this.cropper4.props.name]].map((data, index) => {
+            var strImage = data[0].replace(/^data:image\/[a-z]+;base64,/, "");
+            const uploadTask = storage.ref(`images/${data[1]}`).putString(strImage, 'base64', { contentType: 'image/jpg' });
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                      const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                      this.setState({progress});
+                },
+                (error) => {
+                    console.log(error);
+                },
+                () => {
+                    storage.ref('images').child(`${data[1]}`).getDownloadURL().then(url => {
+                        var ref = database.ref('image_url');
+                        ref.push(url);
+                        this.setState({ data: null });
+                    })
                 });
-                console.log(this.state.list);
-            })
+            return true;
+        })
+    }
+    handleChanges(event) {
+        var context = this;
+        var reader = new FileReader();
+        this.setState({ image: event.target.files[0] })
+        this.setState({ name: event.target.files[0].name })
+        console.log('img', event.target.files[0])
+        reader.readAsDataURL(event.target.files[0]);
+        reader.onload = function (e) {
+
+            var image = new Image();
+
+            image.src = e.target.result;
+
+            image.onload = function () {
+                var height = this.height;
+                var width = this.width;
+                if (height !== 1024 || width !== 1024) {
+                    alert("Uploaded image pixel mismatch.");
+                    console.log(document.getElementsByClassName('image'));
+                    return false;
+                }
+                else if (true) {
+                    context.setState({
+                        data: image.src
+                    })
+                    return true;
+                }
+
+            };
+        }
+
     }
 
-    gridView = data => {
-        if (this.state.grid === 12)
-            this.setState({ grid: 4 });
-        else
-            this.setState({ grid: 12 });
+    _crop() {
+        // image in dataUrl
+        // console.log(this.refs.cropper.getCroppedCanvas().toDataURL());
     }
+    cropImage1() {
+        if (typeof this.cropper1.getCroppedCanvas() === 'undefined') {
+            return;
+        }
+       
+        this.setState({
+            cropResult1: this.cropper1.getCroppedCanvas({
+                width: 365,
+                height: 212,
+                fillColor: '#fff',
+                imageSmoothingEnabled: false,
+                imageSmoothingQuality: 'high',
+            }).toDataURL()
+        });
+    }
+    cropImage2() {
+        if (typeof this.cropper2.getCroppedCanvas() === 'undefined') {
+            return;
+        }
+        this.setState({
+            cropResult2: this.cropper2.getCroppedCanvas({
+                width: 365,
+                height: 450,
+                fillColor: '#fff',
+                imageSmoothingEnabled: false,
+                imageSmoothingQuality: 'high',
+            }).toDataURL(),
+        });
+    }
+    cropImage3() {
+        if (typeof this.cropper3.getCroppedCanvas() === 'undefined') {
+            return;
+        }
+        this.setState({
+            cropResult3: this.cropper3.getCroppedCanvas({
+                width: 380,
+                height: 380,
+                fillColor: '#fff',
+                imageSmoothingEnabled: false,
+                imageSmoothingQuality: 'high',
+            }).toDataURL(),
+        });
+    }
+    cropImage4() {
+        if (typeof this.cropper4.getCroppedCanvas() === 'undefined') {
+            return;
+        }
+        this.setState({
+            cropResult4: this.cropper4.getCroppedCanvas({
+                width: 755,
+                height: 450,
+                fillColor: '#fff',
+                imageSmoothingEnabled: false,
+                imageSmoothingQuality: 'high',
+            }).toDataURL(),
+        });
+    }
+
 
     render() {
         const { classes } = this.props;
         return (
             <div className={classes.root}>
-                <div style={{ float: 'center' }}>
-                    <InputBase
-                        id="bootstrap-input"
-                        placeholder="Name"
-                        onChange={this.handleChange}
-                        classes={{
-                            root: classes.bootstrapRoot,
-                            input: classes.bootstrapInput,
-                        }}
-                    />
-                    <InputBase
-                        id="bootstrap-input"
-                        placeholder="Url"
-                        onChange={this.handleChange1}
-                        classes={{
-                            root: classes.bootstrapRoot,
-                            input: classes.bootstrapInput,
-                        }}
-                    />
-                    <Button variant="contained" className={classes.button} onClick={this.fetchUrl}>
-                        Save
-                    </Button>
-                </div>
-                <div style={{ float: 'right' }}>
+                {/* <div style={{ float: 'right' }}>
                     <div>
                         {this.state.grid === 4 && <img src="../asset/list.png" alt="" height="25" width="25" onClick={this.gridView} />}
                         {this.state.grid === 12 && <img src="../asset/grid.png" alt="" height="20" width="20" onClick={this.gridView} />}
                     </div>
-                </div>
-                <Grid container spacing={8}>
-                    <Grid container item xs={12} spacing={8}>
-                        {this.state.list.map((data) => {
-                            return (
-                                <React.Fragment>
-                                    <Grid item xs={this.state.grid}>
-                                        <Paper className={classes.paper}>
-                                            <Grid container spacing={16}>
-                                                <Grid item>
-                                                    <ButtonBase className={classes.tagimage}>
-                                                        <img className={classes.tagimg} alt="complex" src='../asset/bookmark.png' />
-                                                    </ButtonBase>
-                                                </Grid>
-                                                <Grid item xs={12} sm container>
-                                                    <Grid item xs container direction="column" spacing={16}>
-                                                        <Grid item xs>
-                                                            <Typography gutterBottom variant="subtitle1">
-                                                                {data.bookmark_name}
-                                                            </Typography>
-                                                            <Typography gutterBottom><a href={data.url}>{data.url}</a></Typography>
-                                                            <Typography color="textSecondary"><img className={classes.image} alt="complex" src={data.image} />
-                                                            {data.title}</Typography>
-                                                            <Typography gutterBottom>{data.description}</Typography>
-                                                        </Grid>
-                                                        <Grid item>
-                                                            <Typography style={{ cursor: 'pointer' }}>Remove</Typography>
-                                                        </Grid>
-                                                    </Grid>
-                                                    <Grid item>
-                                                        {true && <img className={classes.controlimage} alt="complex" src='../asset/icons8-star-50.png' />}
-                                                        {false && <img className={classes.controlimage} alt="complex" src='../asset/icons8-star-filled-48.png' />}
-                                                        <img className={classes.controlimage} alt="complex" src='../asset/archive.png' />
+                </div> */}
+                <input className='image' type='file' accept='.jpg,.jpeg.,.gif,.png' onChange={(event) => {
+                    this.handleChanges.bind(this)(event);
+                    const context = this;
+                    window.setTimeout(function () {
+                        context.cropImage1.bind(context)();
+                        context.cropImage2.bind(context)();
+                        context.cropImage3.bind(context)();
+                        context.cropImage4.bind(context)();
+                    }, 500)
+                }} />
+                {this.state.data !== null &&
+                    <div>
+                        <div style={{ paddingTop: '50px', display: 'block' }}>
+                            <Cropper
+                                name={`365x212 ${this.state.name}`}
+                                ref={cropper1 => { this.cropper1 = cropper1; }}
+                                src={this.state.data}
+                                style={{ height: 250, width: 250 }}
+                                preview=".img-preview1"
+                                aspectRatio={365 / 212}
+                                guides={false}
+                                crop={this._crop.bind(this)} />
+                            <div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1>Preview</h1>
+                                    <div className="img-preview1" style={{ width: '100%', float: 'left', height: 300 }} />
+                                </div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1 >
+                                        <span>Crop</span>
+                                        <button onClick={this.cropImage1.bind(this)} style={{ float: 'right' }}>
+                                            Crop Image
+                                        </button>
+                                    </h1>
+                                    <img style={{ width: 365, height: 212 }} src={this.state.cropResult1} alt="cropped_image" />
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ paddingTop: '450px', display: 'block' }}>
+                            <Cropper
+                                name={`365x450 ${this.state.name}`}
+                                ref={cropper2 => { this.cropper2 = cropper2; }}
+                                src={this.state.data}
+                                style={{ height: 250, width: 250 }}
+                                preview=".img-preview2"
+                                aspectRatio={365 / 450}
+                                guides={false}
+                                crop={this._crop.bind(this)} />
 
-                                                    </Grid>
-                                                </Grid>
-                                            </Grid>
-                                        </Paper>
-                                    </Grid >
-                                </React.Fragment>
-                            );
-                        })}
-                    </Grid>
-                </Grid>
+                            <div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1>Preview</h1>
+                                    <div className="img-preview2" style={{ width: '100%', float: 'left', height: 300 }} />
+                                </div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1>
+                                        <span>Crop</span>
+                                        <button onClick={this.cropImage2.bind(this)} style={{ float: 'right' }}>
+                                            Crop Image
+                                        </button>
+                                    </h1>
+                                    <img style={{ width: 365, height: 450 }} src={this.state.cropResult2} alt="cropped_image" />
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ paddingTop: '580px', display: 'block' }}>
+                            <Cropper
+                                name={`380x380 ${this.state.name}`}
+                                ref={cropper3 => { this.cropper3 = cropper3; }}
+                                src={this.state.data}
+                                style={{ height: 250, width: 250 }}
+                                preview=".img-preview3"
+                                aspectRatio={380 / 380}
+                                guides={false}
+                                crop={this._crop.bind(this)} />
+                            <div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1>Preview</h1>
+                                    <div className="img-preview3" style={{ width: '100%', float: 'left', height: 300 }} />
+                                </div>
+                                <div className="box" style={{ width: '50%', float: 'right' }}>
+                                    <h1>
+                                        <span>Crop</span>
+                                        <button onClick={this.cropImage3.bind(this)} style={{ float: 'right' }}>
+                                            Crop Image
+                                        </button>
+                                    </h1>
+                                    <img style={{ width: 380, height: 380 }} src={this.state.cropResult3} alt="cropped_image" />
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ paddingTop: '500px', display: 'block' }}>
+                            <Cropper
+                                name={`755x450 ${this.state.name}`}
+                                ref={cropper4 => { this.cropper4 = cropper4; }}
+                                src={this.state.data}
+                                style={{ height: 250, width: 250 }}
+                                preview=".img-preview4"
+                                aspectRatio={755 / 450}
+                                guides={false}
+                                crop={this._crop.bind(this)} />
+                            <div>
+                                <div className="box" style={{ width: '30%', float: 'right' }}>
+                                    <h1>Preview</h1>
+                                    <div className="img-preview4" style={{ width: '100%', float: 'left', height: 300 }} />
+                                </div>
+                                <div className="box" style={{ width: '70%', float: 'right' }}>
+                                    <h1>
+                                        <span>Crop</span>
+                                        <button onClick={this.cropImage4.bind(this)} style={{ float: 'right' }}>
+                                            Crop Image
+                                        </button>
+                                    </h1>
+                                    <img style={{ width: 755, height: 450 }} src={this.state.cropResult4} alt="cropped_image" />
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={this.handleUpload.bind(this)}>Upload</button>
+                        <button onClick={() => this.setState({ data: null })}>Clear</button>
+                    </div>}
+                <GridList cellHeight={180} className={classes.gridList}>
+                    <GridListTile key="Subheader" cols={2} style={{ height: 'auto' }}>
+                        {/* <ListSubheader component="div">December</ListSubheader> */}
+                    </GridListTile>
+                    {this.state.image_list.map((data, index) => (
+                        <GridListTile cols={1/2} key={index}>
+                            <img src={data} alt={data} />
+                            <GridListTileBar
+                                title={''}
+                                subtitle={<span>size: {data.replace("https://firebasestorage.googleapis.com/v0/b/image-480de.appspot.com/o/images%2F", "").substring(0, 7)}</span>}
+                                actionIcon={
+                                    <IconButton className={classes.icon}>
+                                        <InfoIcon />
+                                    </IconButton>
+                                }
+                            />
+                        </GridListTile>
+                    ))}
+                </GridList>
             </div >
         );
     }

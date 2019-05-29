@@ -31,3 +31,21 @@
     transform: rotate(360deg);
   }
 }
+.box{
+  display: inline-block;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.img-preview1{
+  overflow: hidden;
+}
+.img-preview2{
+  overflow: hidden;
+}
+.img-preview3{
+  overflow: hidden;
+}
+.img-preview4{
+  overflow: hidden;
+}
+

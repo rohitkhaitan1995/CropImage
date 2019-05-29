@@ -1,0 +1,70 @@
+.cropper365x212{
+    --display212: none;
+    height: 250; 
+    width: 250; 
+    display: var(--display212);
+}
+
+.cropper365x450{
+    --display365: none;
+    height: 250; 
+    width: 250; 
+    display: var(--display365);
+}
+
+.cropper380x380{
+    --display380: none;
+    height: 250; 
+    width: 250; 
+    display: var(--display380);
+}
+
+.cropper755x450{
+    --display450: none;
+    height: 250; 
+    width: 250; 
+    display: var(--display450);
+}
+
+.preview212{
+    --display212: none;
+    display: var(--display212);
+}
+
+.preview365{
+    --display365: none;
+    display: var(--display365)
+}
+
+.preview380{
+    --display380: none;
+    display: var(--display380)
+}
+
+.preview450{
+    --display450: none;
+    display: var(--display450)
+}
+
+.crop212{
+    --display212: none;
+    display: var(--display212);
+}
+
+.crop365{
+    --display365: none;
+    display: var(--display365)
+}
+
+.crop380{
+    --display380: none;
+    display: var(--display380)
+}
+
+.crop450{
+    --display450: none;
+    display: var(--display450)
+}
+.display212 {
+    --display212: inline-block;
+}
