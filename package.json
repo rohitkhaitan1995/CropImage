@@ -13,6 +13,7 @@
     "react": "^16.8.4",
     "react-cropper": "^1.2.0",
     "react-dom": "^16.8.4",
+    "react-image-lightbox": "^5.1.0",
     "react-scripts": "2.1.8"
   },
   "scripts": {

@@ -68,3 +68,8 @@
 .display212 {
     --display212: inline-block;
 }
+.ReactModal__Overlay {
+    top: 50px !important;
+    left: 60px !important;
+} 
+/* ReactModal__Overlay--after-open */

@@ -13,22 +13,26 @@ import GridListTileBar from '@material-ui/core/GridListTileBar';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 
+//image popup
+import Lightbox from 'react-image-lightbox';
+import 'react-image-lightbox/style.css';
+
 
 const styles = theme => ({
     root: {
-    //   display: 'flex',
-    //   flexWrap: 'wrap',
-    //   justifyContent: 'space-around',
-    //   overflow: 'hidden',
-    //   backgroundColor: theme.palette.background.paper,
+        //   display: 'flex',
+        //   flexWrap: 'wrap',
+        //   justifyContent: 'space-around',
+        //   overflow: 'hidden',
+        //   backgroundColor: theme.palette.background.paper,
     },
     gridList: {
-     
+
     },
     icon: {
-      color: 'rgba(255, 255, 255, 0.54)',
+        color: 'rgba(255, 255, 255, 0.54)',
     },
-    
+
 });
 
 class Bookmark extends Component {
@@ -40,7 +44,9 @@ class Bookmark extends Component {
         grid: 4,
         image: '',
         name: '',
-        image_list: []
+        image_list: [],
+        photoIndex: 0,
+        isOpen: false,
     };
 
     componentDidMount() {
@@ -57,8 +63,8 @@ class Bookmark extends Component {
             const uploadTask = storage.ref(`images/${data[1]}`).putString(strImage, 'base64', { contentType: 'image/jpg' });
             uploadTask.on('state_changed',
                 (snapshot) => {
-                      const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                      this.setState({progress});
+                    const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                    this.setState({ progress });
                 },
                 (error) => {
                     console.log(error);
@@ -114,7 +120,7 @@ class Bookmark extends Component {
         if (typeof this.cropper1.getCroppedCanvas() === 'undefined') {
             return;
         }
-       
+
         this.setState({
             cropResult1: this.cropper1.getCroppedCanvas({
                 width: 365,
@@ -171,6 +177,7 @@ class Bookmark extends Component {
 
     render() {
         const { classes } = this.props;
+        const { image_list, photoIndex, isOpen } = this.state;
         return (
             <div className={classes.root}>
                 {/* <div style={{ float: 'right' }}>
@@ -303,9 +310,10 @@ class Bookmark extends Component {
                     <GridListTile key="Subheader" cols={2} style={{ height: 'auto' }}>
                         {/* <ListSubheader component="div">December</ListSubheader> */}
                     </GridListTile>
-                    {this.state.image_list.map((data, index) => (
-                        <GridListTile cols={1/2} key={index}>
-                            <img src={data} alt={data} />
+                    {this.state.image_list.map((data, index) => {
+                        return (<GridListTile cols={1 / 2} key={index}>
+                            <img src={data} alt={data} onClick={() =>
+                                this.setState({ photoIndex: index, isOpen: true })} />
                             <GridListTileBar
                                 title={''}
                                 subtitle={<span>size: {data.replace("https://firebasestorage.googleapis.com/v0/b/image-480de.appspot.com/o/images%2F", "").substring(0, 7)}</span>}
@@ -315,9 +323,26 @@ class Bookmark extends Component {
                                     </IconButton>
                                 }
                             />
-                        </GridListTile>
-                    ))}
+                        </GridListTile>)
+                    })}
                 </GridList>
+                {isOpen && <Lightbox
+                    style={{top:'50px', left:'70px'}}
+                    mainSrc={image_list[photoIndex]}
+                    nextSrc={image_list[(photoIndex + 1) % image_list.length]}
+                    prevSrc={image_list[(photoIndex + image_list.length - 1) % image_list.length]}
+                    onCloseRequest={() => this.setState({ isOpen: false })}
+                    onMovePrevRequest={() =>
+                        this.setState({
+                            photoIndex: (photoIndex + image_list.length - 1) % image_list.length
+                        })
+                    }
+                    onMoveNextRequest={() =>
+                        this.setState({
+                            photoIndex: (photoIndex + 1) % image_list.length
+                        })
+                    }
+                />}
             </div >
         );
     }
